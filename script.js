@@ -7,8 +7,11 @@
 
 var cityName, weatherToday, lat, lon;
 var forecastArray = [];
+var dayWeatherObj = {};
 var APIkey = "8b262eaefe86d4d8579b9c93d3ba1dfc";
 var corsProxy = "https://cors-anywhere.herokuapp.com/";
+var today = (moment().format('ddd, MMMM DD, YYYY'));
+console.log("today:", today);
 lat = 33.441792;
 lon = -94.037689;
 
@@ -27,7 +30,6 @@ var queryURL = weatherAPI + cityName + "&appid=" + APIkey;
 console.log(testqueryURL);
 
 
-
 eventListeners = () => {
     $('#searchBtn').on('click', function (e) {
         e.preventDefault();
@@ -44,14 +46,19 @@ getCity = () => {
 
 appendForecast = (array) => {
     console.log("Running appendForecast function on this array:", array);
-    for (i=0; i < array.length; i++) {
+    for (i=0; i < array.length - 3; i++) {
         let dayWeatherObj = array[i];
-        console.log("dayWeatherObj:", dayWeatherObj);
+        console.log(dayWeatherObj);
+        // let day = (moment.utc(dayWeatherObj.dt).format('ddd MMMM Do'));
+        let UTCday = dayWeatherObj.dt;
+        let day = new Date(UTCday*1000);
+        let shortDay = (moment(day).format('ddd MMMM Do'))
+        console.log("day:", day);
         $('#forecast').append(
             `<div class="card" style="width: 20%;">
                 <img src="placeholder.png" class="card-img-top mt-3" alt="weather icon" style="width:80px; margin:auto">
                     <div class="card-body">
-                        <h5 class="card-title">${dayWeatherObj.dt}</h5>
+                        <h5 class="card-title">${shortDay}</h5>
                         <p class="card-text">High: </p>
                         <p>Low:</p>
                         <p>Humidity:</p>
@@ -61,11 +68,6 @@ appendForecast = (array) => {
     }
 }
 
-getForecast = (forecastArray) => {
-    forecastArray;
-    appendForecast(forecastArray);
-    console.log("Running getForecast function.");
-}
 
 getWeather = () => {
     cityName = getCity();
