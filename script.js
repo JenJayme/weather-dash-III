@@ -6,21 +6,26 @@
 
 
 var cityName, weatherToday, lat, lon;
+var forecastArray = [];
 var APIkey = "8b262eaefe86d4d8579b9c93d3ba1dfc";
 var corsProxy = "https://cors-anywhere.herokuapp.com/";
+lat = 33.441792;
+lon = -94.037689;
 
 // var queryURL;
 // CURRENT DAY ONLY BY CITY
 // var weatherAPI = `http://api.openweathermap.org/data/2.5/weather?q=${cityName}&units=imperial&appid=`;
 // var queryURL = corsProxy + weatherAPI + cityName + "&appid=" + APIkey;
+// var testqueryURL = corsProxy + "http://api.openweathermap.org/data/2.5/weather?q=Novato&units=imperial&appid=8b262eaefe86d4d8579b9c93d3ba1dfc";
+var testqueryURL = corsProxy + `http://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&exclude=hourly&appid=${APIkey}`;
+
+
 
 // REDO: 5 DAY FORECAST BY LAT & LON 
 var weatherAPI = `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&exclude=hourly,daily&appid=${APIkey}`;
-var queryURL = corsProxy + weatherAPI + cityName + "&appid=" + APIkey;
-console.log(queryURL);
+var queryURL = weatherAPI + cityName + "&appid=" + APIkey;
+console.log(testqueryURL);
 
-lat = 33.441792;
-lon = -94.037689;
 
 
 eventListeners = () => {
@@ -38,13 +43,15 @@ getCity = () => {
 }
 
 appendForecast = (array) => {
+    console.log("Running appendForecast function on this array:", array);
     for (i=0; i < array.length; i++) {
-        let day = array[i].day;
+        let dayWeatherObj = array[i];
+        console.log("dayWeatherObj:", dayWeatherObj);
         $('#forecast').append(
             `<div class="card" style="width: 20%;">
                 <img src="placeholder.png" class="card-img-top mt-3" alt="weather icon" style="width:80px; margin:auto">
                     <div class="card-body">
-                        <h5 class="card-title">${day}</h5>
+                        <h5 class="card-title">${dayWeatherObj.dt}</h5>
                         <p class="card-text">High: </p>
                         <p>Low:</p>
                         <p>Humidity:</p>
@@ -54,8 +61,8 @@ appendForecast = (array) => {
     }
 }
 
-getForecast = () => {
-    forecastArray = [{day: "Sunday"},{day: "Monday"},{day: "Tuesday"},{day: "Wednesday"},{day: "Thursday"}]
+getForecast = (forecastArray) => {
+    forecastArray;
     appendForecast(forecastArray);
     console.log("Running getForecast function.");
 }
@@ -66,27 +73,34 @@ getWeather = () => {
     console.log("Running getWeather function. City:", cityName);
 
     $.ajax({
-        url: `https://cors-anywhere.herokuapp.com/http://api.openweathermap.org/data/2.5/weather?q=${cityName}&units=imperial&appid=${APIkey}`,
+        url: testqueryURL,
         method: "GET",
         contentType: "application/json",
         dataType: "json",
+        headers: {
+        "X-Requested-With": "XMLHttpRequest"
+        },
         success: function(result) {
-            weatherToday = result;
-            console.log(weatherToday);
+            weatherToday = result.current;
+            forecastArray = result.daily;
+            console.log("weatherToday:", weatherToday);
+            console.log("forecastArray:", forecastArray);
             $('#description').text(weatherToday.weather[0].description);
-            $('#temp').text(weatherToday.main.temp);
-            $('#humidity').text(weatherToday.main.humidity+"%");
-            $('#windSpeed').text(weatherToday.wind.speed + "mph");
-            $('#windDirection').text(weatherToday.wind.deg);
-            let iconImage = `<img src="http://openweathermap.org/img/wn/${weatherToday.weather[0].icon}@2x.png" />`;
-            $('#icon').append(iconImage);
+            $('#temp').text(weatherToday.temp);
+            $('#humidity').text(weatherToday.humidity+"%");
+            $('#windSpeed').text(weatherToday.wind_speed + "mph");
+            $('#windDirection').text(weatherToday.wind_deg + "deg");
+            // let iconImage = `<img src="http://openweathermap.org/img/wn/${weatherToday.weather[0].icon}@2x.png" />`;
+            // $('#icon').append(iconImage);
+            $('#uvIndex').text(weatherToday.uvi);
+            appendForecast(forecastArray);
             return weatherToday;
         },
         error: function(error) {
             console.log(error)
         }
-    })
-    getForecast();
+    });
+    return forecastArray
 }
 
 // ONE API CALL FOR FORECAST
