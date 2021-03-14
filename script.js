@@ -1,9 +1,27 @@
 // OPEN WEATHER EXAMPLE API CALL
 // api.openweathermap.org/data/2.5/weather?q={city name}&appid={API key}
 
-var apiKey = "8b262eaefe86d4d8579b9c93d3ba1dfc";
-var queryURL;
-var city, weatherToday;
+// ONE API CALL FOR FORECAST
+// https://api.openweathermap.org/data/2.5/onecall?lat=33.441792&lon=-94.037689&exclude=hourly,daily&appid={API key}
+
+
+var cityName, weatherToday, lat, lon;
+var APIkey = "8b262eaefe86d4d8579b9c93d3ba1dfc";
+var corsProxy = "https://cors-anywhere.herokuapp.com/";
+
+// var queryURL;
+// CURRENT DAY ONLY BY CITY
+// var weatherAPI = `http://api.openweathermap.org/data/2.5/weather?q=${cityName}&units=imperial&appid=`;
+// var queryURL = corsProxy + weatherAPI + cityName + "&appid=" + APIkey;
+
+// REDO: 5 DAY FORECAST BY LAT & LON 
+var weatherAPI = `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&exclude=hourly,daily&appid=${APIkey}`;
+var queryURL = corsProxy + weatherAPI + cityName + "&appid=" + APIkey;
+console.log(queryURL);
+
+lat = 33.441792;
+lon = -94.037689;
+
 
 eventListeners = () => {
     $('#searchBtn').on('click', function (e) {
@@ -13,26 +31,42 @@ eventListeners = () => {
 }
 
 
+getCity = () => {
+    console.log("Running getCity function.");
+    cityName = $('#city').val();
+    return cityName
+}
+
+appendForecast = (array) => {
+    for (i=0; i < array.length; i++) {
+        let day = array[i].day;
+        $('#forecast').append(
+            `<div class="card" style="width: 20%;">
+                <img src="placeholder.png" class="card-img-top mt-3" alt="weather icon" style="width:80px; margin:auto">
+                    <div class="card-body">
+                        <h5 class="card-title">${day}</h5>
+                        <p class="card-text">High: </p>
+                        <p>Low:</p>
+                        <p>Humidity:</p>
+                    </div>
+            </div>`)
+
+    }
+}
+
 getForecast = () => {
+    forecastArray = [{day: "Sunday"},{day: "Monday"},{day: "Tuesday"},{day: "Wednesday"},{day: "Thursday"}]
+    appendForecast(forecastArray);
     console.log("Running getForecast function.");
-    $('#forecast').append(
-    `<div class="card" style="width: 18rem;">
-        <img src="placeholder.png" class="card-img-top mt-3" alt="weather icon" style="width:80px; margin:auto">
-            <div class="card-body">
-                <h5 class="card-title">Day, Date</h5>
-                <p class="card-text">High: </p>
-                <p>Low:</p>
-                <p>Humidity:</p>
-            </div>
-    </div>`)
 }
 
 getWeather = () => {
-    city = getCity();
-    console.log("Running getWeather function. City:", city);
+    cityName = getCity();
+
+    console.log("Running getWeather function. City:", cityName);
 
     $.ajax({
-        url: `https://cors-anywhere.herokuapp.com/http://api.openweathermap.org/data/2.5/weather?q=${city}&units=imperial&appid=${apiKey}`,
+        url: `https://cors-anywhere.herokuapp.com/http://api.openweathermap.org/data/2.5/weather?q=${cityName}&units=imperial&appid=${APIkey}`,
         method: "GET",
         contentType: "application/json",
         dataType: "json",
@@ -52,62 +86,120 @@ getWeather = () => {
             console.log(error)
         }
     })
-
     getForecast();
 }
 
+// ONE API CALL FOR FORECAST
+// https://api.openweathermap.org/data/2.5/onecall?lat=33.441792&lon=-94.037689&exclude=hourly,daily&appid={API key}
 // {
-//     "coord": {
-//       "lon": -122.08,
-//       "lat": 37.39
+//     "lat": 33.44,
+//     "lon": -94.04,
+//     "timezone": "America/Chicago",
+//     "timezone_offset": -21600,
+//     "current": {
+//       "dt": 1595243443,
+//       "sunrise": 1608124431,
+//       "sunset": 1608160224,
+//       "temp": 274.75,
+//       "feels_like": 270.4,
+//       "pressure": 1017,
+//       "humidity": 96,
+//       "dew_point": 274.18,
+//       "uvi": 0,
+//       "clouds": 90,
+//       "visibility": 6437,
+//       "wind_speed": 3.6,
+//       "wind_deg": 320,
+//       "weather": [
+//         {
+//           "id": 701,
+//           "main": "Mist",
+//           "description": "mist",
+//           "icon": "50n"
+//         }
+//       ]
 //     },
-//     "weather": [
+//     "minutely": [
 //       {
-//         "id": 800,
-//         "main": "Clear",
-//         "description": "clear sky",
-//         "icon": "01d"
-//       }
-//     ],
-//     "base": "stations",
-//     "main": {
-//       "temp": 282.55,
-//       "feels_like": 281.86,
-//       "temp_min": 280.37,
-//       "temp_max": 284.26,
-//       "pressure": 1023,
-//       "humidity": 100
+//         "dt": 1595243460,
+//         "precipitation": 0
+//       },
+//       ...
 //     },
-//     "visibility": 16093,
-//     "wind": {
-//       "speed": 1.5,
-//       "deg": 350
-//     },
-//     "clouds": {
-//       "all": 1
-//     },
-//     "dt": 1560350645,
-//     "sys": {
-//       "type": 1,
-//       "id": 5122,
-//       "message": 0.0139,
-//       "country": "US",
-//       "sunrise": 1560343627,
-//       "sunset": 1560396563
-//     },
-//     "timezone": -25200,
-//     "id": 420006353,
-//     "name": "Mountain View",
-//     "cod": 200
-//     }                         
+//       "hourly": [
+//       {
+//         "dt": 1595242800,
+//         "temp": 274.75,
+//         "feels_like": 271.22,
+//         "pressure": 1017,
+//         "humidity": 96,
+//         "dew_point": 274.18,
+//         "uvi": 0,
+//         "clouds": 90,
+//         "visibility": 1765,
+//         "wind_speed": 2.43,
+//         "wind_deg": 303,
+//         "weather": [
+//           {
+//             "id": 804,
+//             "main": "Clouds",
+//             "description": "overcast clouds",
+//             "icon": "04n"
+//           }
+//         ],
+//         "pop": 0.1
+//       },
+//       ...
+//     }
+//   "daily": [
+//           {
+//         "dt": 1595268000,
+//         "sunrise": 1608124431,
+//         "sunset": 1608160224,
+//         "temp": {
+//           "day": 278.14,
+//           "min": 273.15,
+//           "max": 279.4,
+//           "night": 273.15,
+//           "eve": 275.82,
+//           "morn": 275.35
+//         },
+//         "feels_like": {
+//           "day": 273.53,
+//           "night": 270.26,
+//           "eve": 271.89,
+//           "morn": 272.11
+//         },
+//         "pressure": 1021,
+//         "humidity": 70,
+//         "dew_point": 273.27,
+//         "wind_speed": 3.74,
+//         "wind_deg": 323,
+//         "weather": [
+//           {
+//             "id": 803,
+//             "main": "Clouds",
+//             "description": "broken clouds",
+//             "icon": "04d"
+//           }
+//         ],
+//         "clouds": 60,
+//         "pop": 0.84,
+//         "uvi": 2.41
+//       },
+//       ...
+//       },
+//   "alerts": [
+//       {
+//         "sender_name": "NWS Tulsa (Eastern Oklahoma)",
+//         "event": "Heat Advisory",
+//         "start": 1597341600,
+//         "end": 1597366800,
+//         "description": "...HEAT ADVISORY REMAINS IN EFFECT FROM 1 PM THIS AFTERNOON TO\n8 PM CDT THIS EVENING...\n* WHAT...Heat index values of 105 to 109 degrees expected.\n* WHERE...Creek, Okfuskee, Okmulgee, McIntosh, Pittsburg,\nLatimer, Pushmataha, and Choctaw Counties.\n* WHEN...From 1 PM to 8 PM CDT Thursday.\n* IMPACTS...The combination of hot temperatures and high\nhumidity will combine to create a dangerous situation in which\nheat illnesses are possible."
+//       },
+//       ...
+//     ]
                           
-
-getCity = () => {
-    console.log("Running getCity function.");
-    city = $('#city').val();
-    return city
-}
-
 
 $(document).ready(function () {
     eventListeners();
