@@ -10,6 +10,7 @@ var cityCoords = {
     lat: 38,
     lon: -110
 };
+var searchHistory = [];
 var APIkey = "8b262eaefe86d4d8579b9c93d3ba1dfc";
 var corsProxy = "https://cors-anywhere.herokuapp.com/";
 var today = (moment().format('ddd, MMMM DD, YYYY'));
@@ -60,9 +61,10 @@ findCityCoords = (cityName) => {
         success: function (result) {
             console.log("SUCCESS! cityCoords:", result);
             cityCoords = result[0];
-            console.log("cityCoords.lat:", cityCoords.lat);
+            console.log("city search obj:", cityCoords);
+            searchHistory.push(cityCoords);
+            localStorage.setItem("searchHistory",searchHistory);
             return cityCoords
-
         },
         error: function (result) {
             alert("Error. cityCoords not found.", result)
