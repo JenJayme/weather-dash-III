@@ -1,54 +1,87 @@
-// OPEN WEATHER EXAMPLE API CALL
-// api.openweathermap.org/data/2.5/weather?q={city name}&appid={API key}
-
 // ONE API CALL FOR FORECAST
 // https://api.openweathermap.org/data/2.5/onecall?lat=33.441792&lon=-94.037689&exclude=hourly,daily&appid={API key}
 
 
-var cityName, weatherToday, lat, lon;
+var cityName = '';
+var weatherToday, lat, lon;
 var forecastArray = [];
 var dayWeatherObj = {};
+var cityCoords = {
+    lat: 38,
+    lon: -110
+};
 var APIkey = "8b262eaefe86d4d8579b9c93d3ba1dfc";
 var corsProxy = "https://cors-anywhere.herokuapp.com/";
 var today = (moment().format('ddd, MMMM DD, YYYY'));
+
 console.log("today:", today);
 
-lat = 33.441792;
-lon = -94.037689;
+// lat = 33.441792;
+// lon = -94.037689;
 // var queryURL;
 // CURRENT DAY ONLY BY CITY
 // var weatherAPI = `http://api.openweathermap.org/data/2.5/weather?q=${cityName}&units=imperial&appid=`;
 // var queryURL = corsProxy + weatherAPI + cityName + "&appid=" + APIkey;
-// var testqueryURL = corsProxy + "http://api.openweathermap.org/data/2.5/weather?q=Novato&units=imperial&appid=8b262eaefe86d4d8579b9c93d3ba1dfc";
+
 var testqueryURL = corsProxy + `http://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&units=imperial&exclude=hourly&appid=${APIkey}`;
+// console.log(testqueryURL);
 
-
-// REDO: 5 DAY FORECAST BY LAT & LON 
-var weatherAPI = corsProxy + `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&units=imperial&exclude=hourly,daily&appid=${APIkey}`;
-var queryURL = weatherAPI + cityName + "&appid=" + APIkey;
-console.log(testqueryURL);
-
-var cityQuery = `http://api.openweathermap.org/geo/1.0/direct?q=${cityName}&limit=5&appid=${APIkey}`;
+var weatherQueryURL = corsProxy + `https://api.openweathermap.org/data/2.5/onecall?lat=${cityCoords.lat}&lon=${cityCoords.lon}&units=imperial&exclude=hourly&appid=${APIkey}`;
 
 
 eventListeners = () => {
     $('#searchBtn').on('click', function (e) {
         e.preventDefault();
-        getWeather();
+        startQuery()
     })
 }
 
+findCityCoords = (cityName) => {
 
-getCity = () => {
-    console.log("Running getCity function.");
     cityName = $('#city').val();
-    return cityName
+
+    if (cityName == null || typeof cityName == undefined) {
+        alert("cityName is null")
+    }
+
+    console.log("Running findCityCoords on this cityName", cityName);
+
+    let cityQuery = corsProxy + `http://api.openweathermap.org/geo/1.0/direct?q=${cityName}&limit=5&appid=${APIkey}`;
+    console.log("cityQuery:", cityQuery);
+
+    $.ajax({
+        url: cityQuery,
+        method: "GET",
+        contentType: "application/json",
+        dataType: "json",
+        headers: {
+        "X-Requested-With": "XMLHttpRequest"
+        },
+        success: function (result) {
+            console.log("SUCCESS! cityCoords:", result);
+            cityCoords = result[0];
+            console.log("cityCoords.lat:", cityCoords.lat);
+            return cityCoords
+
+        },
+        error: function (result) {
+            alert("Error. cityCoords not found.", result)
+        }
+    })
 }
 
-appendForecast = (array) => {
-    console.log("Running appendForecast function on this array:", array);
-    for (i=0; i < array.length - 3; i++) {
-        let dayWeatherObj = array[i];
+// getCity = () => {
+
+//     cityName = $('#city').val();
+//     findCityCoords(cityName);
+//     console.log("cityCoords", cityCoords);
+//     return cityCoords
+// }
+
+appendForecast = (forecastArray) => {
+    console.log("Running appendForecast function on this array:", forecastArray);
+    for (i=0; i < forecastArray.length - 3; i++) {
+        let dayWeatherObj = forecastArray[i];
         let UTCday = dayWeatherObj.dt;
         let day = new Date(UTCday*1000);
         let shortDay = (moment(day).format('ddd MMMM Do'));
@@ -66,14 +99,17 @@ appendForecast = (array) => {
     }
 }
 
+startQuery = async () => {
+
+    getWeather();
+    cityCoords = await findCityCoords()
+
+}
 
 getWeather = () => {
-    cityName = getCity();
-
-    console.log("Running getWeather function. City:", cityName);
 
     $.ajax({
-        url: testqueryURL,
+        url: weatherQueryURL,
         method: "GET",
         contentType: "application/json",
         dataType: "json",
@@ -81,6 +117,7 @@ getWeather = () => {
         "X-Requested-With": "XMLHttpRequest"
         },
         success: function(result) {
+            console.log("SUCCESS ON WEATHER QUERY!", result);
             weatherToday = result.current;
             forecastArray = result.daily;
             $('#description').text(weatherToday.weather[0].description);
@@ -91,14 +128,14 @@ getWeather = () => {
             let iconImage = `<img src="http://openweathermap.org/img/wn/${weatherToday.weather[0].icon}@2x.png" style="width:200px"/>`;
             $('#icon').append(iconImage);
             $('#uvIndex').text(weatherToday.uvi);
+            console.log("result.daily:", result.daily);
             appendForecast(forecastArray);
-            return weatherToday;
+            return forecastArray;
         },
         error: function(error) {
             console.log(error)
         }
     });
-    return forecastArray
 }
 
 // ONE API CALL FOR FORECAST
