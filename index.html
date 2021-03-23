@@ -25,18 +25,23 @@
                     <input class="form-control mr-sm-2" type="search" placeholder="City" id="city" aria-label="Search" >
                     <button class="btn btn-info my-2 my-sm-0" id="searchBtn" type="submit" >Search</button>
                 </form>
+                <button class="btn btn-info my-2 my-sm-0" id="refreshCityList">Refresh Cities</button>
                 </div>
-                <ul class="list-group">
-                    <li class="list-group-item">Cras justo odio</li>
-                    <li class="list-group-item">Dapibus ac facilisis in</li>
-                    <li class="list-group-item">Morbi leo risus</li>
-                    <li class="list-group-item">Porta ac consectetur ac</li>
-                    <li class="list-group-item">Vestibulum at eros</li>
+                <ul class="list-group" id="cityList">
+                    <!-- <li class="list-group-item">Cras justo odio</li> -->
                   </ul>
             </div>
             <div class="col-9 rightCol">
                 <div class="row bg-info text-white pb-3 p-3">
-                    <h5>Today's Weather</h5><div id="today"></div><div id="location"></div>
+                  <div class="col">
+                    <h5>Today's Weather</h5>
+                  </div>
+                  <div class="col">                  
+                    <div id="today" class="text-center"></div>
+                  </div>
+                  <div class="col">
+                    <div id="location" class="text-center"></div>
+                  </div>
                 </div>
                 <div class="row">
                     <div class="col-4">

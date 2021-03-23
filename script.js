@@ -1,43 +1,39 @@
 // ONE API CALL FOR FORECAST
 // https://api.openweathermap.org/data/2.5/onecall?lat=33.441792&lon=-94.037689&exclude=hourly,daily&appid={API key}
 
-
 var cityName = '';
 var weatherToday, lat, lon;
 var forecastArray = [];
 var dayWeatherObj = {};
-var cityCoords = {
-    lat: 38,
-    lon: -110
-};
+var cityCoords = {};
 var searchHistory = [];
+var favoritesList = [];
+// searchHistory = localStorage.getItem("searchHistory");
+console.log("searchHistory", searchHistory);
 var APIkey = "8b262eaefe86d4d8579b9c93d3ba1dfc";
 var corsProxy = "https://cors-anywhere.herokuapp.com/";
 var today = (moment().format('ddd, MMMM DD, YYYY'));
 
-console.log("today:", today);
+$('#today').text(today);
 
-// lat = 33.441792;
-// lon = -94.037689;
-// var queryURL;
-// CURRENT DAY ONLY BY CITY
-// var weatherAPI = `http://api.openweathermap.org/data/2.5/weather?q=${cityName}&units=imperial&appid=`;
-// var queryURL = corsProxy + weatherAPI + cityName + "&appid=" + APIkey;
 
 var testqueryURL = corsProxy + `http://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&units=imperial&exclude=hourly&appid=${APIkey}`;
 // console.log(testqueryURL);
 
-var weatherQueryURL = corsProxy + `https://api.openweathermap.org/data/2.5/onecall?lat=${cityCoords.lat}&lon=${cityCoords.lon}&units=imperial&exclude=hourly&appid=${APIkey}`;
-
-
 eventListeners = () => {
     $('#searchBtn').on('click', function (e) {
         e.preventDefault();
-        startQuery()
+        cityName = $('#city').val();
+        startQuery();
+        $('#location').text(cityName);
+    })
+    $('#refreshCityList').on('click', function (e) {
+        e.preventDefault();
+        refreshCityList();
     })
 }
 
-findCityCoords = (cityName) => {
+findCityCoords = () => {
 
     cityName = $('#city').val();
 
@@ -59,12 +55,17 @@ findCityCoords = (cityName) => {
         "X-Requested-With": "XMLHttpRequest"
         },
         success: function (result) {
-            console.log("SUCCESS! cityCoords:", result);
+            console.log("SUCCESS! cityCoords:", result[0]);
             cityCoords = result[0];
             console.log("city search obj:", cityCoords);
             searchHistory.push(cityCoords);
             localStorage.setItem("searchHistory",searchHistory);
-            return cityCoords
+            lat = cityCoords.lat;
+            lon = cityCoords.lon;
+            if (confirm("City coordinates found. Getting weather for "+cityName+".")) {
+                getWeather(lat, lon)
+            };
+            return forecastArray;
         },
         error: function (result) {
             alert("Error. cityCoords not found.", result)
@@ -72,16 +73,9 @@ findCityCoords = (cityName) => {
     })
 }
 
-// getCity = () => {
-
-//     cityName = $('#city').val();
-//     findCityCoords(cityName);
-//     console.log("cityCoords", cityCoords);
-//     return cityCoords
-// }
-
 appendForecast = (forecastArray) => {
     console.log("Running appendForecast function on this array:", forecastArray);
+    $('#forecast').empty();
     for (i=0; i < forecastArray.length - 3; i++) {
         let dayWeatherObj = forecastArray[i];
         let UTCday = dayWeatherObj.dt;
@@ -97,18 +91,18 @@ appendForecast = (forecastArray) => {
                         Humidity: ${dayWeatherObj.humidity}%</p>
                     </div>
             </div>`)
-
     }
 }
 
 startQuery = async () => {
 
-    getWeather();
-    cityCoords = await findCityCoords()
-
+    getWeather(findCityCoords);
+    cityCoords = await findCityCoords();
 }
 
-getWeather = () => {
+getWeather = (lat, lon) => {
+
+    let weatherQueryURL = corsProxy + `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&units=imperial&exclude=hourly&appid=${APIkey}`;
 
     $.ajax({
         url: weatherQueryURL,
@@ -125,10 +119,10 @@ getWeather = () => {
             $('#description').text(weatherToday.weather[0].description);
             $('#temp').text(weatherToday.temp + "F");
             $('#humidity').text(weatherToday.humidity+"%");
-            $('#windSpeed').text(weatherToday.wind_speed + "mph");
-            $('#windDirection').text(weatherToday.wind_deg + "deg");
+            $('#windSpeed').text(weatherToday.wind_speed + " mph");
+            $('#windDirection').text(weatherToday.wind_deg + " deg");
             let iconImage = `<img src="http://openweathermap.org/img/wn/${weatherToday.weather[0].icon}@2x.png" style="width:200px"/>`;
-            $('#icon').append(iconImage);
+            $('#icon').html(iconImage);
             $('#uvIndex').text(weatherToday.uvi);
             console.log("result.daily:", result.daily);
             appendForecast(forecastArray);
@@ -138,6 +132,15 @@ getWeather = () => {
             console.log(error)
         }
     });
+}
+
+refreshCityList = () => {
+    favoritesList = localStorage.getItem("searchHistory");
+    console.log("Getting favoritesList", favoritesList);
+    for (var i = 0; i < favoritesList.length; i++) {
+        let faveCity = favoritesList.cityName;
+        $('#cityList').append(`<li class="list-group-item">${faveCity}</li>`)
+    }
 }
 
 // ONE API CALL FOR FORECAST
